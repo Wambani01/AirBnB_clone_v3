@@ -14,7 +14,7 @@ from models import storage
                  methods=['GET', 'PUT', 'DELETE'], strict_slashes=False)
 def states(state_id=None):
     """Retrieves a list of state objects"""
-    
+
     state_objs = storage.all(State)
 
     states = [obj.to_dict() for obj in state_objs.values()]
@@ -37,7 +37,6 @@ def states(state_id=None):
                 if state.get('id') == state_id:
                     return jsonify(state)
             abort(404)
-                  
         elif request.method == 'PUT':
             my_dict = request.get_json()
 
