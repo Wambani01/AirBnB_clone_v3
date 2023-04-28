@@ -5,7 +5,7 @@
 from api.v1.views import app_views
 from flask import Flask
 from flask import jsonify
-import os
+from os import getenv
 from models import storage
 
 
