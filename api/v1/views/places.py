@@ -4,58 +4,65 @@
 
 from api.v1.views import app_views
 from flask import request, jsonify, abort
-from models.place import Place
 from models import storage
 from models.city import City
+from models.user import User
+from models.place import Place
 
 
 @app_views.route('cities/<city_id>/places',
                  methods=['GET', 'POST'], strict_slashes=False)
 def places_by_city(city_id):
     """retrieve places based on city_id"""
-    city_objs = storage.all(City)
-    cities = [city for city in city_objs.values()]
 
     if request.method == 'GET':
-        for city in cities:
-            if city.id == city_id:
-                places_objs = storage.all(Place)
-                places = [place.to_dict()
-                       for place in places_objs.values()
-                       if place.city_id == city_id]
-                return jsonify(places)
+        city = storage.get(City, city_id)
+
+        if city:
+            places = [place.to_dict() for place in city.places]
+            return jsonify(places)
         abort(404)
     elif request.method == 'POST':
-        for state in states:
-            if state.id == state_id:
-                my_dict = request.get_json()
-                if my_dict is None:
-                    abort(400, 'Not a JSON')
-                if my_dict.get("name") is None:
-                    abort(400, 'Missing name')
-                my_dict["state_id"] = state_id
-                city = City(**my_dict)
-                city.save()
-                return jsonify(city.to_dict()), 201
+        city = storage.get(City, city_id)
+
+        if city:
+            my_dict = request.get_json()
+            if my_dict is None:
+                abort(400, 'Not a JSON')
+            if my_dict.get("user_id") is None:
+                abort(400, 'Missing user_id')
+            if my_dict.get("name") is None:
+                abort(400, 'Missing name')
+
+            user = storage.get(User, my_dict.get("user_id"))
+
+            if user:
+                place = Place(**my_dict)
+                place.save()
+                return jsonify(place.to_dict()), 201
+            abort(404)
+        abort(404)
 
 
-@app_views.route('/cities/<string:city_id>',
+@app_views.route('/places/<string:place_id>',
                  methods=['GET', 'PUT', 'DELETE'], strict_slashes=False)
-def city_by_city_id(city_id):
-    """retrieves cities by cities id"""
-    city = storage.get(City, city_id)
-    if city is None:
+def place_by_place_id(place_id):
+    """Retrieves a place based on the place_id"""
+    place = storage.get(Place, place_id)
+
+    if place is None:
         abort(404)
     if request.method == 'GET':
-        return jsonify(city.to_dict())
+        return jsonify(place.to_dict())
     elif request.method == 'DELETE':
-        storage.delete(city)
+        storage.delete(place)
         storage.save()
         return jsonify({}), 200
     elif request.method == 'PUT':
         my_dict = request.get_json()
         if my_dict is None:
             abort(400, 'Not a JSON')
-        city.name = my_dict.get("name")
-        city.save()
-        return jsonify(city.to_dict()), 200
+        for k, v in request.get_json().items():
+            setattr(place, k, v)
+        place.save()
+        return jsonify(place.to_dict()), 200
