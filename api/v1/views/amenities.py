@@ -14,7 +14,6 @@ from models import storage
                  methods=['GET', 'PUT', 'DELETE'], strict_slashes=False)
 def amenities(amenity_id=None):
     """Retrieves a list of amenity objects"""
-    
     amenity_objs = storage.all(Amenity)
 
     amenities = [obj.to_dict() for obj in amenity_objs.values()]
@@ -37,7 +36,6 @@ def amenities(amenity_id=None):
                 if amenity.get('id') == amenity_id:
                     return jsonify(amenity)
             abort(404)
-                  
         elif request.method == 'PUT':
             my_dict = request.get_json()
 
