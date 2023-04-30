@@ -21,7 +21,7 @@ def users(user_id=None):
     if not user_id:
         if request.method == 'GET':
             return jsonify(users)
-        elif request.method == 'POST':
+        if request.method == 'POST':
             my_dict = request.get_json()
 
             if my_dict is None:
@@ -34,27 +34,22 @@ def users(user_id=None):
             new_user.save()
             return jsonify(new_user.to_dict()), 201
     else:
-        if request.method == 'GET':
-            for user in users:
-                if user.get('id') == user_id:
-                    return jsonify(user)
+        user = storage.get(User, user_id)
+
+        if user is None:
             abort(404)
-        elif request.method == 'PUT':
+        if request.method == 'GET':
+            return jsonify(user.to_dict())
+        if request.method == 'PUT':
             my_dict = request.get_json()
 
             if my_dict is None:
                 abort(400, 'Not a JSON')
-            for user in users_objs.values():
-                if user.id == user_id:
-                    user.name = my_dict.get("name")
-                    user.save()
-                    return jsonify(user.to_dict()), 200
-            abort(404)
-
-        elif request.method == 'DELETE':
-            for obj in users_objs.values():
-                if obj.id == user_id:
-                    storage.delete(obj)
-                    storage.save()
-                    return jsonify({}), 200
-            abort(404)
+            for k, v in my_dict.items():
+                setattr(user, k, v)
+            user.save()
+            return jsonify(user.to_dict()), 200
+        if request.method == 'DELETE':
+            user.delete()
+            storage.save()
+            return jsonify({}), 200
