@@ -54,15 +54,15 @@ def place_by_place_id(place_id):
         abort(404)
     if request.method == 'GET':
         return jsonify(place.to_dict())
-    elif request.method == 'DELETE':
-        storage.delete(place)
+    if request.method == 'DELETE':
+        place.delete()
         storage.save()
         return jsonify({}), 200
-    elif request.method == 'PUT':
+    if request.method == 'PUT':
         my_dict = request.get_json()
         if my_dict is None:
             abort(400, 'Not a JSON')
-        for k, v in request.get_json().items():
+        for k, v in my_dict.items():
             setattr(place, k, v)
         place.save()
         return jsonify(place.to_dict()), 200
